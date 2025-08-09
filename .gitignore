@@ -1,0 +1,42 @@
+# Build y dependencias
+build/
+target/
+.gradle/
+.mvn/
+out/
+bin/
+
+# Dependencias (excepto el wrapper)
+!gradle/wrapper/gradle-wrapper.jar
+
+# Configuración de IDEs
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.classpath
+.project
+.settings/
+*.swp
+*.swo
+*~
+~$*
+
+# Archivos de Micronaut
+.micronaut/
+micronaut-cli.yml
+
+# Logs y temporales
+*.log
+logs/
+*.tmp
+*.bak
+
+# Archivos de entorno
+.env
+*.env
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
