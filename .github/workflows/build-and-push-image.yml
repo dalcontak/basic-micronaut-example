@@ -1,0 +1,74 @@
+# Nombre del workflow que aparecerá en la pestaña "Actions" de GitHub
+name: Build and Push Native Docker Image
+
+# Define cuándo se ejecutará este workflow
+on:
+  push:
+    branches: [ "main" ] # Se activa con cada push a la rama main
+
+# Variables de entorno para simplificar los pasos
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }} # El nombre de la imagen será tu "usuario/repositorio"
+
+# Define los trabajos (jobs) que se ejecutarán
+jobs:
+  build-and-push:
+    # El tipo de máquina virtual en la que se ejecutará el job
+    runs-on: ubuntu-latest
+    # Permisos necesarios para que el job pueda leer el repo y escribir en el registro de paquetes
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      # 1. Clona el código de tu repositorio
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Configura Java para poder ejecutar Gradle
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      # 3. Obtiene el nombre del artefacto desde Gradle y lo guarda para usarlo después
+      - name: Get project name from Gradle
+        id: project
+        run: echo "name=$(./gradlew properties -q | grep '^name:' | awk '{print $2}')" >> $GITHUB_OUTPUT
+
+      # 4. Configura QEMU para poder construir imágenes para diferentes arquitecturas (cross-compilation)
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      # 5. Configura Docker Buildx, el constructor avanzado de Docker
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # 6. Inicia sesión en el GitHub Container Registry (GHCR)
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # 7. Extrae metadatos (como tags y labels) para la imagen Docker
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+
+      # 8. Construye y publica la imagen Docker
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64 # Construye para ambas arquitecturas
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            ARTIFACT_NAME=${{ steps.project.outputs.name }}
