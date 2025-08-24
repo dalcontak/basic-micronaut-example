@@ -1,6 +1,7 @@
 package com.takanadev.controller;
 
 import com.takanadev.domain.Order;
+import com.takanadev.dto.OrderCreateRequest;
 import com.takanadev.repository.OrderRepository;
 import io.micronaut.http.annotation.*;
 import io.micronaut.http.HttpStatus;
@@ -22,18 +23,20 @@ public class OrderController {
 
     @Get
     @Operation(summary = "Get all orders", description = "We can get all orders of the system")
-    @ApiResponse(responseCode = "200", description = "Orders found")
-    @ApiResponse(responseCode = "404", description = "There was an error")
+    @ApiResponse(responseCode = "200", description = "Returns all orders, or an empty list if none exist.")
     public List<Order> getAll() {
         return repository.findAll();
     }
 
     @Post
     @Status(HttpStatus.CREATED)
-    @Operation(summary = "Create an order", description = "We can create an order in the system")
-    @ApiResponse(responseCode = "200", description = "Order created")
-    @ApiResponse(responseCode = "404", description = "Order wasn't able to be created")
-    public Order create(@Body Order order) {
+    @Operation(summary = "Create an order", description = "Creates a new order in the system.")
+    @ApiResponse(responseCode = "201", description = "Order created successfully.")
+    @ApiResponse(responseCode = "400", description = "Invalid order data provided.")
+    public Order create(@Body OrderCreateRequest request) {
+        Order order = new Order();
+        order.setCustomerName(request.customerName());
+        order.setCost(request.cost());
         return repository.save(order);
     }
 }

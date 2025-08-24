@@ -16,7 +16,6 @@ dependencies {
     annotationProcessor("io.micronaut.data:micronaut-data-processor")
     annotationProcessor("io.micronaut:micronaut-http-validation")
     annotationProcessor("io.micronaut.serde:micronaut-serde-processor")
-    annotationProcessor("org.projectlombok:lombok")
     annotationProcessor("io.micronaut.openapi:micronaut-openapi")
 
     implementation("io.micronaut.openapi:micronaut-openapi-annotations")
@@ -28,7 +27,6 @@ dependencies {
 
     compileOnly("io.micronaut:micronaut-http-client")
     compileOnly("org.projectlombok:lombok")
-    compileOnly("io.micronaut.openapi:micronaut-openapi-annotations")
 
     runtimeOnly("ch.qos.logback:logback-classic")
     runtimeOnly("com.h2database:h2")
@@ -76,5 +74,3 @@ micronaut {
 tasks.named("dockerfileNative") {
     jdkVersion = "21"
 }
-
-

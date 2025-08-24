@@ -4,6 +4,8 @@ import io.micronaut.serde.annotation.Serdeable;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
+
 @Entity
 @Table(name = "orders")
 @Data // Lombok: getters, setters, toString, equals
@@ -20,5 +22,5 @@ public class Order {
     private String customerName;
 
     @Column(nullable = false)
-    private Double cost;
+    private BigDecimal cost;
 }
