@@ -1,5 +1,7 @@
 FROM ghcr.io/graalvm/native-image:21 as builder
 
+RUN microdnf install findutils
+
 WORKDIR /home/app
 
 COPY gradlew .
