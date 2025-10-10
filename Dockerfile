@@ -1,6 +1,4 @@
-FROM ghcr.io/graalvm/native-image:21 as builder
-
-RUN microdnf install findutils
+FROM container-registry.oracle.com/graalvm/native-image:21 AS builder
 
 WORKDIR /home/app
 
