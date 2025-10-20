@@ -14,9 +14,17 @@ env:
 # Define los trabajos (jobs) que se ejecutarán
 jobs:
   build-and-push:
-    # El tipo de máquina virtual en la que se ejecutará el job
-    runs-on: ubuntu-latest
-    # Permisos necesarios para que el job pueda leer el repo y escribir en el registro de paquetes
+    # Define una matriz de estrategia para construir en paralelo en diferentes arquitecturas
+    strategy:
+      matrix:
+        include:
+          - runner: ubuntu-latest
+            platform: linux/amd64
+          - runner: ubuntu-latest-arm64
+            platform: linux/arm64
+
+    # El job se ejecutará en el runner definido en la matriz
+    runs-on: ${{ matrix.runner }}
     permissions:
       contents: read
       packages: write
@@ -38,15 +46,11 @@ jobs:
         id: project
         run: echo "name=$(./gradlew properties -q | grep '^name:' | awk '{print $2}')" >> $GITHUB_OUTPUT
 
-      # 4. Configura QEMU para poder construir imágenes para diferentes arquitecturas (cross-compilation)
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
-      # 5. Configura Docker Buildx, el constructor avanzado de Docker
+      # 4. Configura Docker Buildx, el constructor avanzado de Docker
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      # 6. Inicia sesión en el GitHub Container Registry (GHCR)
+      # 5. Inicia sesión en el GitHub Container Registry (GHCR)
       - name: Log in to the Container registry
         uses: docker/login-action@v3
         with:
@@ -54,20 +58,22 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # 7. Extrae metadatos (como tags y labels) para la imagen Docker
+      # 6. Extrae metadatos (como tags y labels) para la imagen Docker
       - name: Extract metadata (tags, labels) for Docker
         id: meta
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
 
-      # 8. Construye y publica la imagen Docker
+      # 7. Construye y publica la imagen Docker
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
           context: .
-          platforms: linux/amd64 # Construye solo para amd64
+          # La plataforma se toma de la matriz para la construcción nativa
+          platforms: ${{ matrix.platform }}
           push: true
+          # Las etiquetas son las mismas para ambos jobs, esto es crucial para el manifiesto
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
