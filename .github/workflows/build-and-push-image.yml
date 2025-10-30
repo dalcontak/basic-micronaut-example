@@ -20,7 +20,7 @@ jobs:
         include:
           - runner: ubuntu-latest
             platform: linux/amd64
-          - runner: local-arm64
+          - runner: [self-hosted, Linux, ARM64]
             platform: linux/arm64
 
     # El job se ejecutará en el runner definido en la matriz
